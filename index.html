@@ -495,7 +495,7 @@
         const CONFIG = {
             //API_BASE_URL: 'https://agenteautonomowpp-production.up.railway.app', // Não usar diretamente - CORS bloqueado
             //API_BASE_URL: 'http://localhost:3000', // Não usar diretamente - CORS bloqueado
-            API_BASE_URL: '', // Usar proxy do mesmo servidor (localhost:8080 faz proxy para backend)
+            API_BASE_URL: '/api', // Usa função serverless/proxy hospedada junto ao frontend (Vercel)
             REFRESH_INTERVAL: 3000, // 3 segundos
             TOAST_DURATION: 3000, // 3 segundos
             RETRY_DELAY: 2000 // 2 segundos para retry
