@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Frontend para conexão com Bot WhatsApp">
+    <title>WhatsApp Bot - Conexão</title>
+    <style>
+        /* ========== RESET E VARIÁVEIS ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --whatsapp-green: #25D366;
+            --whatsapp-dark: #075E54;
+            --whatsapp-light: #128C7E;
+            --bg-gradient: linear-gradient(135deg, #075E54 0%, #128C7E 100%);
+            --white: #ffffff;
+            --gray-light: #f0f0f0;
+            --gray-medium: #999999;
+            --gray-dark: #333333;
+            --error-red: #dc3545;
+            --success-green: #28a745;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        /* ========== ESTILOS GLOBAIS ========== */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: var(--gray-dark);
+        }
+
+        /* ========== HEADER ========== */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        .logo {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.2));
+        }
+
+        h1 {
+            color: var(--white);
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+            font-weight: 300;
+        }
+
+        /* ========== CARD PRINCIPAL ========== */
+        .container {
+            background: var(--white);
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        /* ========== ESTADOS ========== */
+        .state {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .state.active {
+            display: block;
+        }
+
+        /* Estado: Loading */
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid var(--gray-light);
+            border-top: 5px solid var(--whatsapp-green);
+            border-radius: 50%;
+            margin: 30px auto;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            color: var(--gray-medium);
+            font-size: 1.1rem;
+            margin-top: 20px;
+        }
+
+        /* Estado: QR Code */
+        .qr-container {
+            background: var(--white);
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid var(--whatsapp-green);
+            margin: 20px 0;
+            box-shadow: var(--shadow);
+        }
+
+        #qrImage {
+            width: 100%;
+            max-width: 300px;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            border-radius: 10px;
+        }
+
+        .instructions {
+            margin-top: 25px;
+            padding: 20px;
+            background: var(--gray-light);
+            border-radius: 12px;
+            text-align: left;
+        }
+
+        .instructions h3 {
+            color: var(--whatsapp-dark);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+            color: var(--gray-dark);
+            line-height: 1.8;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+        }
+
+        /* Estado: Conectado */
+        .success-icon {
+            font-size: 5rem;
+            margin: 20px 0;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        .success-message {
+            color: var(--success-green);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .success-details {
+            color: var(--gray-medium);
+            font-size: 1rem;
+        }
+
+        /* Estado: Erro */
+        .error-icon {
+            font-size: 4rem;
+            margin: 20px 0;
+        }
+
+        .error-message {
+            color: var(--error-red);
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .error-details {
+            color: var(--gray-medium);
+            margin-bottom: 20px;
+        }
+
+        /* ========== BOTÕES ========== */
+        .btn {
+            background: var(--whatsapp-green);
+            color: var(--white);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+            margin: 10px 5px;
+        }
+
+        .btn:hover {
+            background: var(--whatsapp-light);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: var(--gray-medium);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-dark);
+        }
+
+        /* ========== FOOTER ========== */
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success-green);
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.inactive {
+            background: var(--gray-medium);
+            animation: none;
+        }
+
+        /* ========== TOAST NOTIFICATION ========== */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--whatsapp-green);
+            color: var(--white);
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: var(--shadow-lg);
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            animation: slideInRight 0.4s ease-out;
+        }
+
+        .toast.show {
+            display: flex;
+        }
+
+        .toast.error {
+            background: var(--error-red);
+        }
+
+        /* ========== ANIMAÇÕES ========== */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* ========== RESPONSIVIDADE ========== */
+        @media (max-width: 600px) {
+            body {
+                padding: 15px;
+            }
+
+            .container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .logo {
+                font-size: 2.5rem;
+            }
+
+            .status-bar {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .toast {
+                right: 10px;
+                left: 10px;
+                top: 10px;
+            }
+        }
+
+        /* ========== ACESSIBILIDADE ========== */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="logo" role="img" aria-label="WhatsApp Logo">💬</div>
+        <h1>WhatsApp Bot</h1>
+        <p class="subtitle">Sistema de Conexão</p>
+    </header>
+
+    <!-- Container Principal -->
+    <main class="container" role="main">
+        <!-- Estado: Loading -->
+        <div id="loadingState" class="state active">
+            <div class="loading-spinner" role="status" aria-label="Carregando"></div>
+            <p class="loading-text">Conectando ao servidor...</p>
+        </div>
+
+        <!-- Estado: QR Code -->
+        <div id="qrState" class="state">
+            <h2 style="color: var(--whatsapp-dark); margin-bottom: 20px;">
+                📱 Escaneie o QR Code
+            </h2>
+            <div class="qr-container">
+                <img id="qrImage" src="" alt="QR Code para conexão WhatsApp">
+            </div>
+
+            <div class="instructions">
+                <h3>📋 Como conectar:</h3>
+                <ol>
+                    <li>Abra o <strong>WhatsApp</strong> no seu celular</li>
+                    <li>Toque em <strong>Mais opções</strong> (⋮) ou <strong>Configurações</strong></li>
+                    <li>Toque em <strong>Aparelhos conectados</strong></li>
+                    <li>Toque em <strong>Conectar um aparelho</strong></li>
+                    <li>Aponte seu celular para esta tela para escanear o código</li>
+                </ol>
+            </div>
+
+            <button class="btn" onclick="app.forceRefresh()" aria-label="Forçar atualização do QR Code">
+                🔄 Atualizar QR Code
+            </button>
+        </div>
+
+        <!-- Estado: Conectado -->
+        <div id="connectedState" class="state">
+            <div class="success-icon" role="img" aria-label="Sucesso">✅</div>
+            <h2 class="success-message">Conectado com Sucesso!</h2>
+            <p class="success-details">
+                Seu bot WhatsApp está online e pronto para uso.
+            </p>
+            <button class="btn" onclick="app.checkStatus()" aria-label="Verificar status">
+                🔍 Verificar Status
+            </button>
+        </div>
+
+        <!-- Estado: Erro -->
+        <div id="errorState" class="state">
+            <div class="error-icon" role="img" aria-label="Erro">⚠️</div>
+            <h2 class="error-message">Erro ao Conectar</h2>
+            <p class="error-details" id="errorMessage">
+                Não foi possível conectar ao servidor. Por favor, tente novamente.
+            </p>
+            <div>
+                <button class="btn" onclick="app.retry()" aria-label="Tentar novamente">
+                    🔄 Tentar Novamente
+                </button>
+                <button class="btn btn-secondary" onclick="app.checkStatus()" aria-label="Verificar status do servidor">
+                    📊 Ver Status
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer com Status -->
+    <footer>
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="status-dot" id="connectionDot"></span>
+                <span id="connectionStatus">Verificando...</span>
+            </div>
+            <div class="status-item">
+                🕐 Última atualização: <span id="lastUpdate">Nunca</span>
+            </div>
+        </div>
+        <p style="font-size: 0.85rem; margin-top: 10px;">
+            Desenvolvido com 💚 para automação WhatsApp
+        </p>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast" role="alert" aria-live="polite">
+        <span id="toastIcon">✓</span>
+        <span id="toastMessage">Mensagem</span>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // ========== CONFIGURAÇÃO ========== //
+        const CONFIG = {
+            API_BASE_URL: 'https://agenteautonomowpp-production.up.railway.app',
+            REFRESH_INTERVAL: 3000, // 3 segundos
+            TOAST_DURATION: 3000, // 3 segundos
+            RETRY_DELAY: 2000 // 2 segundos para retry
+        };
+
+        // ========== APLICAÇÃO PRINCIPAL ========== //
+        const app = {
+            // Estado da aplicação
+            state: {
+                isConnected: false,
+                hasQR: false,
+                intervalId: null,
+                lastUpdateTime: null,
+                errorCount: 0
+            },
+
+            // Inicializa a aplicação
+            init() {
+                console.log('🚀 Iniciando aplicação WhatsApp Bot...');
+                this.updateLastUpdateTimer();
+                this.fetchQRCode();
+                this.startAutoRefresh();
+            },
+
+            // Busca o QR Code da API
+            async fetchQRCode() {
+                try {
+                    console.log('📡 Buscando QR Code...');
+                    const response = await fetch(`${CONFIG.API_BASE_URL}/qr`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    console.log('📥 Resposta recebida:', data);
+
+                    this.state.lastUpdateTime = new Date();
+                    this.state.errorCount = 0; // Reset error count on success
+                    this.updateConnectionStatus(true);
+                    this.handleAPIResponse(data);
+
+                } catch (error) {
+                    console.error('❌ Erro ao buscar QR Code:', error);
+                    this.state.errorCount++;
+                    this.updateConnectionStatus(false);
+                    this.showError(`Erro de conexão: ${error.message}`);
+                }
+            },
+
+            // Processa a resposta da API
+            handleAPIResponse(data) {
+                // Caso 1: Bot já conectado
+                if (data.connected === true) {
+                    console.log('✅ Bot conectado!');
+                    this.state.isConnected = true;
+                    this.state.hasQR = false;
+                    this.showState('connected');
+                    this.showToast('Bot conectado com sucesso!', 'success');
+                    this.stopAutoRefresh(); // Para de buscar QR quando conectado
+                }
+                // Caso 2: QR Code disponível
+                else if (data.qr) {
+                    console.log('📱 QR Code disponível');
+                    this.state.isConnected = false;
+                    this.state.hasQR = true;
+                    this.displayQRCode(data.qr);
+                    this.showState('qr');
+                }
+                // Caso 3: QR ainda não gerado
+                else if (data.error) {
+                    console.log('⏳ QR Code ainda não gerado');
+                    this.showState('loading');
+                }
+                // Caso 4: Resposta inesperada
+                else {
+                    console.warn('⚠️ Resposta inesperada da API:', data);
+                    this.showError('Resposta inesperada do servidor');
+                }
+            },
+
+            // Exibe o QR Code na tela
+            displayQRCode(qrDataUrl) {
+                const qrImage = document.getElementById('qrImage');
+                qrImage.src = qrDataUrl;
+                qrImage.alt = 'QR Code para conexão WhatsApp';
+            },
+
+            // Verifica o status do servidor
+            async checkStatus() {
+                try {
+                    console.log('🔍 Verificando status do servidor...');
+                    const response = await fetch(`${CONFIG.API_BASE_URL}/status`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    console.log('📊 Status do servidor:', data);
+
+                    const statusMsg = `
+                        Status do Servidor:
+                        • Conectado: ${data.connected ? 'Sim ✅' : 'Não ❌'}
+                        • QR Disponível: ${data.hasQR ? 'Sim' : 'Não'}
+                        • Timestamp: ${new Date(data.timestamp).toLocaleString('pt-BR')}
+                    `;
+
+                    alert(statusMsg);
+
+                    // Atualiza estado baseado no status
+                    if (data.connected) {
+                        this.state.isConnected = true;
+                        this.showState('connected');
+                    }
+
+                } catch (error) {
+                    console.error('❌ Erro ao verificar status:', error);
+                    alert(`Erro ao verificar status: ${error.message}`);
+                }
+            },
+
+            // Inicia atualização automática
+            startAutoRefresh() {
+                console.log(`🔄 Iniciando atualização automática (a cada ${CONFIG.REFRESH_INTERVAL}ms)`);
+
+                // Limpa intervalo anterior se existir
+                if (this.state.intervalId) {
+                    clearInterval(this.state.intervalId);
+                }
+
+                this.state.intervalId = setInterval(() => {
+                    // Só busca QR se não estiver conectado
+                    if (!this.state.isConnected) {
+                        this.fetchQRCode();
+                    }
+                }, CONFIG.REFRESH_INTERVAL);
+            },
+
+            // Para atualização automática
+            stopAutoRefresh() {
+                if (this.state.intervalId) {
+                    console.log('⏸️ Parando atualização automática');
+                    clearInterval(this.state.intervalId);
+                    this.state.intervalId = null;
+                }
+            },
+
+            // Força atualização manual
+            forceRefresh() {
+                console.log('🔄 Atualização forçada pelo usuário');
+                this.showToast('Atualizando QR Code...', 'info');
+                this.fetchQRCode();
+            },
+
+            // Tenta novamente após erro
+            retry() {
+                console.log('🔁 Tentando reconectar...');
+                this.showState('loading');
+                setTimeout(() => {
+                    this.fetchQRCode();
+                    this.startAutoRefresh();
+                }, CONFIG.RETRY_DELAY);
+            },
+
+            // Exibe um estado específico
+            showState(stateName) {
+                const states = ['loading', 'qr', 'connected', 'error'];
+                states.forEach(state => {
+                    const element = document.getElementById(`${state}State`);
+                    if (element) {
+                        element.classList.remove('active');
+                    }
+                });
+
+                const activeState = document.getElementById(`${stateName}State`);
+                if (activeState) {
+                    activeState.classList.add('active');
+                }
+            },
+
+            // Exibe erro
+            showError(message) {
+                const errorMessage = document.getElementById('errorMessage');
+                if (errorMessage) {
+                    errorMessage.textContent = message;
+                }
+                this.showState('error');
+                this.showToast(message, 'error');
+            },
+
+            // Exibe notificação toast
+            showToast(message, type = 'success') {
+                const toast = document.getElementById('toast');
+                const toastMessage = document.getElementById('toastMessage');
+                const toastIcon = document.getElementById('toastIcon');
+
+                // Define ícone baseado no tipo
+                const icons = {
+                    success: '✓',
+                    error: '✗',
+                    info: 'ℹ'
+                };
+
+                toastIcon.textContent = icons[type] || icons.info;
+                toastMessage.textContent = message;
+
+                // Remove classes anteriores e adiciona nova
+                toast.classList.remove('error');
+                if (type === 'error') {
+                    toast.classList.add('error');
+                }
+
+                // Mostra toast
+                toast.classList.add('show');
+
+                // Esconde após duração configurada
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, CONFIG.TOAST_DURATION);
+            },
+
+            // Atualiza status de conexão visual
+            updateConnectionStatus(isOnline) {
+                const statusText = document.getElementById('connectionStatus');
+                const statusDot = document.getElementById('connectionDot');
+
+                if (isOnline) {
+                    statusText.textContent = 'Online';
+                    statusDot.classList.remove('inactive');
+                } else {
+                    statusText.textContent = 'Offline';
+                    statusDot.classList.add('inactive');
+                }
+            },
+
+            // Atualiza timer de última atualização
+            updateLastUpdateTimer() {
+                setInterval(() => {
+                    const lastUpdateElement = document.getElementById('lastUpdate');
+
+                    if (this.state.lastUpdateTime) {
+                        const secondsAgo = Math.floor((new Date() - this.state.lastUpdateTime) / 1000);
+
+                        if (secondsAgo < 60) {
+                            lastUpdateElement.textContent = `${secondsAgo}s atrás`;
+                        } else {
+                            const minutesAgo = Math.floor(secondsAgo / 60);
+                            lastUpdateElement.textContent = `${minutesAgo}min atrás`;
+                        }
+                    } else {
+                        lastUpdateElement.textContent = 'Nunca';
+                    }
+                }, 1000);
+            }
+        };
+
+        // ========== INICIALIZAÇÃO ========== //
+        // Inicia a aplicação quando o DOM estiver pronto
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => app.init());
+        } else {
+            app.init();
+        }
+
+        // Cleanup ao fechar a página
+        window.addEventListener('beforeunload', () => {
+            app.stopAutoRefresh();
+        });
+    </script>
+</body>
+</html>
