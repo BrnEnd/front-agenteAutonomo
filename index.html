@@ -486,11 +486,16 @@
         <span id="toastMessage">Mensagem</span>
     </div>
 
+    <!-- QRCode.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
     <!-- JavaScript -->
     <script>
         // ========== CONFIGURAÇÃO ========== //
         const CONFIG = {
-            API_BASE_URL: 'https://agenteautonomowpp-production.up.railway.app',
+            //API_BASE_URL: 'https://agenteautonomowpp-production.up.railway.app', // Não usar diretamente - CORS bloqueado
+            //API_BASE_URL: 'http://localhost:3000', // Não usar diretamente - CORS bloqueado
+            API_BASE_URL: '', // Usar proxy do mesmo servidor (localhost:8080 faz proxy para backend)
             REFRESH_INTERVAL: 3000, // 3 segundos
             TOAST_DURATION: 3000, // 3 segundos
             RETRY_DELAY: 2000 // 2 segundos para retry
@@ -519,19 +524,25 @@
             async fetchQRCode() {
                 try {
                     console.log('📡 Buscando QR Code...');
+                    console.log('🔗 URL:', `${CONFIG.API_BASE_URL}/qr`);
+
                     const response = await fetch(`${CONFIG.API_BASE_URL}/qr`, {
                         method: 'GET',
                         headers: {
                             'Accept': 'application/json'
-                        }
+                        },
+                        mode: 'cors',
+                        cache: 'no-cache'
                     });
+
+                    console.log('✅ Resposta recebida:', response.status, response.statusText);
 
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
 
                     const data = await response.json();
-                    console.log('📥 Resposta recebida:', data);
+                    console.log('📥 Dados parseados:', data);
 
                     this.state.lastUpdateTime = new Date();
                     this.state.errorCount = 0; // Reset error count on success
@@ -540,6 +551,9 @@
 
                 } catch (error) {
                     console.error('❌ Erro ao buscar QR Code:', error);
+                    console.error('❌ Tipo do erro:', error.name);
+                    console.error('❌ Mensagem:', error.message);
+                    console.error('❌ Stack:', error.stack);
                     this.state.errorCount++;
                     this.updateConnectionStatus(false);
                     this.showError(`Erro de conexão: ${error.message}`);
@@ -578,10 +592,37 @@
             },
 
             // Exibe o QR Code na tela
-            displayQRCode(qrDataUrl) {
+            displayQRCode(qrString) {
+                const qrContainer = document.querySelector('.qr-container');
                 const qrImage = document.getElementById('qrImage');
-                qrImage.src = qrDataUrl;
-                qrImage.alt = 'QR Code para conexão WhatsApp';
+
+                // Limpa o container
+                qrContainer.innerHTML = '';
+
+                // Cria um div temporário para o QR code
+                const qrDiv = document.createElement('div');
+                qrDiv.id = 'qrcode-generated';
+                qrDiv.style.display = 'flex';
+                qrDiv.style.justifyContent = 'center';
+                qrDiv.style.alignItems = 'center';
+                qrContainer.appendChild(qrDiv);
+
+                try {
+                    // Gera o QR code a partir da string
+                    new QRCode(qrDiv, {
+                        text: qrString,
+                        width: 300,
+                        height: 300,
+                        colorDark: '#000000',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.L
+                    });
+
+                    console.log('✅ QR Code gerado com sucesso!');
+                } catch (error) {
+                    console.error('❌ Erro ao gerar QR Code:', error);
+                    qrContainer.innerHTML = '<p style="color: red;">Erro ao gerar QR Code</p>';
+                }
             },
 
             // Verifica o status do servidor
