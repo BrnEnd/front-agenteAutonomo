@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* ForgeIA Brand Colors */
+    --forgeia-primary: 222 47% 11%;      /* Navy/Slate-900 #0F172A */
+    --forgeia-primary-600: 217 33% 17%;   /* #1E293B */
+    --forgeia-primary-400: 215 25% 27%;   /* #334155 */
+    
+    --forgeia-accent: 199 89% 48%;        /* Sky-400 #38BDF8 */
+    --forgeia-accent-600: 199 89% 48%;    /* Sky-500 #0EA5E9 */
+    --forgeia-cyan: 188 94% 43%;          /* Cyan-500 #06B6D4 */
+    
+    /* Neutros / Grafite */
+    --forgeia-graphite: 217 91% 6%;       /* Gray-900 #111827 */
+    --forgeia-ink: 220 50% 5%;            /* #0A0F1A */
+    --forgeia-surface: 218 50% 8%;        /* #0B1220 */
+    --forgeia-elevated: 215 33% 13%;      /* #161E2E */
+    --forgeia-border: 217 33% 17%;        /* #1E293B */
+    
+    /* Texto */
+    --forgeia-text: 210 20% 90%;          /* Gray-200 #E5E7EB */
+    --forgeia-muted: 215 20% 65%;         /* Slate-400 #94A3B8 */
+    
+    /* Estados */
+    --forgeia-success: 160 84% 39%;       /* Emerald-500 #10B981 */
+    --forgeia-warning: 38 92% 50%;        /* Amber-500 #F59E0B */
+    --forgeia-danger: 0 84% 60%;          /* Red-500 #EF4444 */
+
+    /* Shadcn theme mapping */
+    --background: 218 50% 8%;
+    --foreground: 210 20% 90%;
+
+    --card: 215 33% 13%;
+    --card-foreground: 210 20% 90%;
+
+    --popover: 215 33% 13%;
+    --popover-foreground: 210 20% 90%;
+
+    --primary: 199 89% 48%;
+    --primary-foreground: 222 47% 11%;
+
+    --secondary: 215 33% 17%;
+    --secondary-foreground: 210 20% 90%;
+
+    --muted: 215 33% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 188 94% 43%;
+    --accent-foreground: 210 20% 90%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 20% 90%;
+
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 199 89% 48%;
+
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
